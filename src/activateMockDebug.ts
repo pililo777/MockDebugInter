@@ -10,7 +10,7 @@ import { MockDebugSession } from './mockDebug';
 import { FileAccessor } from './mockRuntime';
 
 export function activateMockDebug(context: vscode.ExtensionContext, factory?: vscode.DebugAdapterDescriptorFactory) {
-
+	console.log("activateMockDebug");
 	context.subscriptions.push(
 		vscode.commands.registerCommand('extension.mock-debug.runEditorContents', (resource: vscode.Uri) => {
 			let targetResource = resource;
@@ -54,7 +54,7 @@ export function activateMockDebug(context: vscode.ExtensionContext, factory?: vs
 	context.subscriptions.push(vscode.commands.registerCommand('extension.mock-debug.getProgramName', config => {
 		return vscode.window.showInputBox({
 			placeHolder: "Please enter the name of a markdown file in the workspace folder",
-			value: "readme.md"
+			value: "p3.pr"
 		});
 	}));
 
@@ -98,10 +98,10 @@ export function activateMockDebug(context: vscode.ExtensionContext, factory?: vs
 
 	// override VS Code's default implementation of the debug hover
 	// here we match only Mock "variables", that are words starting with an '$' 
-	context.subscriptions.push(vscode.languages.registerEvaluatableExpressionProvider('markdown', {
+	context.subscriptions.push(vscode.languages.registerEvaluatableExpressionProvider('pr', {
 		provideEvaluatableExpression(document: vscode.TextDocument, position: vscode.Position): vscode.ProviderResult<vscode.EvaluatableExpression> {
 
-			const VARIABLE_REGEXP = /\$[a-z][a-z0-9]*/ig;
+			const VARIABLE_REGEXP = /(([a-z_A-Z][a-z_A-Z0-9]*)(\[(\d)+])|([a-z_A-Z][a-z_A-Z0-9]*))/ig;
 			const line = document.lineAt(position.line).text;
 			
 			let m: RegExpExecArray | null;
@@ -117,7 +117,7 @@ export function activateMockDebug(context: vscode.ExtensionContext, factory?: vs
 	}));
 
 	// override VS Code's default implementation of the "inline values" feature"
-	context.subscriptions.push(vscode.languages.registerInlineValuesProvider('markdown', {
+	context.subscriptions.push(vscode.languages.registerInlineValuesProvider('pr', {
 
 		provideInlineValues(document: vscode.TextDocument, viewport: vscode.Range, context: vscode.InlineValueContext) : vscode.ProviderResult<vscode.InlineValue[]> {
 
@@ -125,7 +125,7 @@ export function activateMockDebug(context: vscode.ExtensionContext, factory?: vs
 
 			for (let l = viewport.start.line; l <= context.stoppedLocation.end.line; l++) {
 				const line = document.lineAt(l);
-				var regExp = /\$([a-z][a-z0-9]*)/ig;	// variables are words starting with '$'
+				var regExp = /(([a-z_A-Z][a-z_A-Z0-9]*)(\[(\d)+])|([a-z_A-Z][a-z_A-Z0-9]*))/ig;	// variables are words starting with '$'
 				do {
 					var m = regExp.exec(line.text);
 					if (m) {
@@ -136,7 +136,7 @@ export function activateMockDebug(context: vscode.ExtensionContext, factory?: vs
 						//allValues.push(new vscode.InlineValueText(varRange, `${varName}: ${viewport.start.line}`));
 
 						// value found via variable lookup
-						allValues.push(new vscode.InlineValueVariableLookup(varRange, varName, false));
+						allValues.push(new vscode.InlineValueVariableLookup(varRange, varName, true));
 
 						// value determined via expression evaluation
 						//allValues.push(new vscode.InlineValueEvaluatableExpression(varRange, varName));
@@ -160,7 +160,7 @@ class MockConfigurationProvider implements vscode.DebugConfigurationProvider {
 		// if launch.json is missing or empty
 		if (!config.type && !config.request && !config.name) {
 			const editor = vscode.window.activeTextEditor;
-			if (editor && editor.document.languageId === 'markdown') {
+			if (editor && editor.document.languageId === 'pr') {
 				config.type = 'mock';
 				config.name = 'Launch';
 				config.request = 'launch';

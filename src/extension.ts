@@ -27,21 +27,25 @@ export function activate(context: vscode.ExtensionContext) {
 		case 'server':
 			// run the debug adapter as a server inside the extension and communicate via a socket
 			activateMockDebug(context, new MockDebugAdapterServerDescriptorFactory());
+			console.log("activando modo server");
 			break;
 
 		case 'namedPipeServer':
 			// run the debug adapter as a server inside the extension and communicate via a named pipe (Windows) or UNIX domain socket (non-Windows)
 			activateMockDebug(context, new MockDebugAdapterNamedPipeServerDescriptorFactory());
+			console.log("activando modo namedPipeServer");
 			break;
 
 		case 'external': default:
 			// run the debug adapter as a separate process
 			activateMockDebug(context, new DebugAdapterExecutableFactory());
+			console.log("activando modo external");
 			break;
 
 		case 'inline':
 			// run the debug adapter inside the extension and directly talk to it
 			activateMockDebug(context);
+			console.log("activando modo inline");
 			break;
 	}
 }
@@ -59,6 +63,7 @@ class DebugAdapterExecutableFactory implements vscode.DebugAdapterDescriptorFact
 		// param "executable" contains the executable optionally specified in the package.json (if any)
 
 		// use the executable specified in the package.json if it exists or determine it based on some other information (e.g. the session)
+		console.log("opcion1");
 		if (!executable) {
 			const command = "absolute path to my DA executable";
 			const args = [
@@ -83,6 +88,7 @@ class MockDebugAdapterServerDescriptorFactory implements vscode.DebugAdapterDesc
 
 	createDebugAdapterDescriptor(session: vscode.DebugSession, executable: vscode.DebugAdapterExecutable | undefined): vscode.ProviderResult<vscode.DebugAdapterDescriptor> {
 
+		console.log("opcion2");
 		if (!this.server) {
 			// start listening on a random port
 			this.server = Net.createServer(socket => {
@@ -109,6 +115,7 @@ class MockDebugAdapterNamedPipeServerDescriptorFactory implements vscode.DebugAd
 
 	createDebugAdapterDescriptor(session: vscode.DebugSession, executable: vscode.DebugAdapterExecutable | undefined): vscode.ProviderResult<vscode.DebugAdapterDescriptor> {
 
+		console.log("opcion3");
 		if (!this.server) {
 			// start listening on a random named pipe path
 			const pipeName = randomBytes(10).toString('utf8');

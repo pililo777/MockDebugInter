@@ -44,6 +44,7 @@ const fsAccessor:  FileAccessor = {
 let port = 0;
 const args = process.argv.slice(2);
 args.forEach(function (val, index, array) {
+	console.log("argumento: ", val);
 	const portMatch = /^--server=(\d{4,5})$/.exec(val);
 	if (portMatch) {
 		port = parseInt(portMatch[1], 10);
@@ -71,4 +72,5 @@ if (port > 0) {
 		session.shutdown();
 	});
 	session.start(process.stdin, process.stdout);
+	console.log("inicia stdin stdout");
 }

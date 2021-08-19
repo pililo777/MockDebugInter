@@ -13,6 +13,7 @@ import { DebugProtocol } from 'vscode-debugprotocol';
 import { basename } from 'path';
 import { MockRuntime, IRuntimeBreakpoint, FileAccessor, IRuntimeVariable, timeout, IRuntimeVariableType } from './mockRuntime';
 import { Subject } from 'await-notify';
+//import { TaskRevealKind } from 'vscode';
 
 /**
  * This interface describes the mock-debug specific launch attributes
@@ -54,6 +55,7 @@ export class MockDebugSession extends LoggingDebugSession {
 	private _useInvalidatedEvent = false;
 
 	private _addressesInHex = true;
+	private _pililo = "aqui";
 
 	/**
 	 * Creates a new debug adapter that is used for one debug session.
@@ -61,7 +63,7 @@ export class MockDebugSession extends LoggingDebugSession {
 	 */
 	public constructor(fileAccessor: FileAccessor) {
 		super("mock-debug.txt");
-
+		console.log(this._pililo + " empieza el constructor de MockDebugSession");
 		// this debugger uses zero-based lines and columns
 		this.setDebuggerLinesStartAt1(false);
 		this.setDebuggerColumnsStartAt1(false);
@@ -192,6 +194,7 @@ export class MockDebugSession extends LoggingDebugSession {
 		// since this debug adapter can accept configuration requests like 'setBreakpoint' at any time,
 		// we request them early by sending an 'initializeRequest' to the frontend.
 		// The frontend will end the configuration sequence by calling 'configurationDone' request.
+		console.log("enviamos al frontend InitializedEvent");
 		this.sendEvent(new InitializedEvent());
 	}
 
@@ -200,6 +203,8 @@ export class MockDebugSession extends LoggingDebugSession {
 	 * Indicates that all breakpoints etc. have been sent to the DA and that the 'launch' can start.
 	 */
 	protected configurationDoneRequest(response: DebugProtocol.ConfigurationDoneResponse, args: DebugProtocol.ConfigurationDoneArguments): void {
+
+		console.log("configurationDone, recibimos evento");
 		super.configurationDoneRequest(response, args);
 
 		// notify the launchRequest that configuration has finished
@@ -216,6 +221,7 @@ export class MockDebugSession extends LoggingDebugSession {
 		// wait until configuration has finished (and configurationDoneRequest has been called)
 		await this._configurationDone.wait(1000);
 
+		console.log("ejecutamos el programa");
 		// start the program in the runtime
 		await this._runtime.start(args.program, !!args.stopOnEntry);
 
@@ -368,6 +374,7 @@ export class MockDebugSession extends LoggingDebugSession {
 		const v = this._variableHandles.get(args.variablesReference);
 		if (v === 'locals') {
 			vs = this._runtime.getLocalVariables();
+			//vs = await this._runtime.getGlobalVariables(() => !!this._cancellationTokens.get(request.seq));
 		} else if (v === 'globals') {
 			if (request) {
 				this._cancellationTokens.set(request.seq, false);
@@ -443,7 +450,7 @@ export class MockDebugSession extends LoggingDebugSession {
 		let reply: string | undefined;
 		let rv: IRuntimeVariable | undefined;
 
-		switch (args.context) {
+		switch (args.context) {  //watch
 			case 'repl':
 				// handle some REPL commands:
 				// 'evaluate' supports to create and delete breakpoints from the 'repl':
@@ -479,8 +486,8 @@ export class MockDebugSession extends LoggingDebugSession {
 				// fall through
 
 			default:
-				if (args.expression.startsWith('$')) {
-					rv = this._runtime.getLocalVariable(args.expression.substr(1));
+				if (true) {   //args.expression.startsWith('$')
+					rv = this._runtime.getLocalVariable(args.expression.substr(0));
 				} else {
 					rv = {
 						name: 'eval',
@@ -508,9 +515,9 @@ export class MockDebugSession extends LoggingDebugSession {
 	}
 
 	protected setExpressionRequest(response: DebugProtocol.SetExpressionResponse, args: DebugProtocol.SetExpressionArguments): void {
-
-		if (args.expression.startsWith('$')) {
-			const rv = this._runtime.getLocalVariable(args.expression.substr(1));
+		
+		if (true) {   //args.expression.startsWith('$'
+			const rv = this._runtime.getLocalVariable(args.expression.substr(0));
 			if (rv) {
 				rv.value = this.convertToRuntime(args.value);
 				response.body = this.convertFromRuntime(rv);
@@ -721,8 +728,10 @@ export class MockDebugSession extends LoggingDebugSession {
 			value: '???',
 			type: typeof v.value,
 			variablesReference: 0,
-			evaluateName: '$' + v.name
+			evaluateName:  v.name    //'$' +
 		};
+
+		//estas variables se muestran en Locales:
 
 		if (Array.isArray(v.value)) {
 			dapVariable.value = 'Object';
@@ -741,6 +750,7 @@ export class MockDebugSession extends LoggingDebugSession {
 					break;
 				case 'string':
 					dapVariable.value = `"${v.value}"`;
+					
 					break;
 				case 'boolean':
 					dapVariable.value = v.value ? 'true' : 'false';
