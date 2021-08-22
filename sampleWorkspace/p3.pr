@@ -1534,7 +1534,8 @@ fin
 
 
 proc calcular_tabla_goto
-
+dim GTO[20]
+idx=0
 desde x = 0  hasta ic
 {
 	desde posic = 1 hasta largo (LISTA_NO_TERMINALES)
@@ -1548,6 +1549,11 @@ desde x = 0  hasta ic
 		
 		si (n = 0) oo (n = 1) entonces
 		    imprimir ELEMENTO, ' ', x, '   --->   ', existe
+			EXISTE = ' '
+			X = ' '
+			convertir x x
+			convertir existe EXISTE
+			GTO[idx] = ELEMENTO + ' ' + X + EXISTE 
 		si-fin
 	}
 }

@@ -11,7 +11,9 @@ var  miVars: Array<IMiVariable> = [];
 let  miBP: number;
 
 let miflag: boolean;
+let esperandoRespuesta: boolean;
 let milinea: number;
+let suspendido: boolean;
 //let bpset: boolean;
 
 
@@ -132,6 +134,8 @@ export class MockRuntime extends EventEmitter {
 	constructor(private _fileAccessor: FileAccessor) {
 		super();
 		miflag = false;
+		suspendido  = false;
+		esperandoRespuesta = false;
 		console.log("constructor de MockRuntime");
 
 		this.misocket = net.createConnection( 8080, '127.0.0.1');
@@ -176,8 +180,20 @@ export class MockRuntime extends EventEmitter {
 		// 	return;
 		// }
 
+		if (miSTR.indexOf("nosuspendido")>=0) {
+			suspendido = false;
+			this.misocket.write("current_line");
+			return;
+		}
+
+		if (miSTR.indexOf("suspendido")>=0) {
+			suspendido = true;
+			return;
+		}
+
 		if (miSTR.indexOf("current_line")>=0) {
 			miflag = false;			
+			esperandoRespuesta = false;
 			miBP =  miSTR.indexOf("current_line");
 		    miBP = parseInt(miSTR.substring(miBP+13));
 			this._currentLine = miBP;
@@ -638,7 +654,18 @@ export class MockRuntime extends EventEmitter {
 	 */
 	 private async findNextStatement(reverse: boolean, stepEvent?: string): Promise<boolean> {
 		miflag = true;
-		var oldLinea = this._currentLine;
+		let cnt: number;
+		cnt = 0;
+		
+		//var oldLinea = this._currentLine;
+
+		if (suspendido) {
+			if (stepEvent) {
+				this.sendEvent(stepEvent);
+				return true;
+			}
+		}
+
 
 		if (milinea===undefined) {
 			milinea = -1;
@@ -646,11 +673,29 @@ export class MockRuntime extends EventEmitter {
 
 		
 
-		while (miflag && oldLinea === milinea+1) {
+		//while (miflag && oldLinea === milinea+1 && esperandoRespuesta) {
 			
-			 await timeout(200);
-			 this.misocket.write ("current_line");
+
+		//await timeout(200);
+		this.misocket.write ("current_line");
+			 esperandoRespuesta = true;
 			 
+		//}
+		while (miflag && esperandoRespuesta) {
+			await timeout(200);
+			cnt++;
+
+			if (cnt>5) {
+				cnt = 0;
+				this.misocket.write ("current_line");
+				if (suspendido && esperandoRespuesta) {
+					if (stepEvent) {
+						this.sendEvent(stepEvent);
+						return true;
+					}
+				}
+
+			}
 		}
 
 		let ln = milinea;
