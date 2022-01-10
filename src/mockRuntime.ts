@@ -96,12 +96,12 @@ export class MockRuntime extends EventEmitter {
 	private _ends: number[] = [];
 
 	// This is the next line that will be 'executed'
-	private __currentLine = 0;
+	private currenLine = 0;
 	private get _currentLine() {
-		return this.__currentLine;
+		return this.currenLine;
 	}
 	private set _currentLine(x) {
-		this.__currentLine = x;
+		this.currenLine = x;
 		this._instruction = this._starts[x];
 	}
 	private _currentColumn: number | undefined;
@@ -182,12 +182,15 @@ export class MockRuntime extends EventEmitter {
 
 		if (miSTR.indexOf("nosuspendido")>=0) {
 			suspendido = false;
+			console.log(suspendido);
 			this.misocket.write("current_line");
 			return;
 		}
 
 		if (miSTR.indexOf("suspendido")>=0) {
 			suspendido = true;
+			
+			console.log ('el server se ha suspendido', suspendido);
 			return;
 		}
 
@@ -207,7 +210,7 @@ export class MockRuntime extends EventEmitter {
 		
 		try {
 			//console.log("respueta:");
-			//console.log(data.toString());
+			console.log(data.toString());
 			miVars = JSON.parse(data.toString());	
 			//console.log(miVars.length);
 			//console.log ("se ha parseado!!!!!");
@@ -654,17 +657,17 @@ export class MockRuntime extends EventEmitter {
 	 */
 	 private async findNextStatement(reverse: boolean, stepEvent?: string): Promise<boolean> {
 		miflag = true;
-		let cnt: number;
-		cnt = 0;
+		//let cnt: number;
+		//cnt = 0;
 		
 		//var oldLinea = this._currentLine;
 
-		if (suspendido) {
-			if (stepEvent) {
-				this.sendEvent(stepEvent);
-				return true;
-			}
-		}
+		// if (suspendido) {
+		// 	if (stepEvent) {
+		// 		this.sendEvent(stepEvent);
+		// 		return true;
+		// 	}
+		// }
 
 
 		if (milinea===undefined) {
@@ -683,19 +686,19 @@ export class MockRuntime extends EventEmitter {
 		//}
 		while (miflag && esperandoRespuesta) {
 			await timeout(200);
-			cnt++;
+			// cnt++;
 
-			if (cnt>5) {
-				cnt = 0;
-				this.misocket.write ("current_line");
-				if (suspendido && esperandoRespuesta) {
-					if (stepEvent) {
-						this.sendEvent(stepEvent);
-						return true;
-					}
-				}
+			// if (cnt>5) {
+			// 	cnt = 0;
+			// 	this.misocket.write ("current_line");
+			// 	if (suspendido && esperandoRespuesta) {
+			// 		if (stepEvent) {
+			// 			this.sendEvent(stepEvent);
+			// 			return true;
+			// 		}
+			// 	}
 
-			}
+			// }
 		}
 
 		let ln = milinea;

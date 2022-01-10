@@ -1,12 +1,12 @@
 {
-  "name": "mock-debug",
-  "displayName": "Mock Debug",
+  "name": "mock-debug-inter",
+  "displayName": "MockDebugInter",
   "version": "0.46.1",
-  "publisher": "andreweinand",
-  "description": "Starter extension for developing debug adapters for VS Code.",
+  "publisher": "pililo777",
+  "description": "Depurador de un lenguage pseudocodigo",
   "author": {
-    "name": "Microsoft Corporation",
-    "email": "aweinand@microsoft.com"
+    "name": "RRivero",
+    "email": "pililo222@gmail.com"
   },
   "license": "MIT",
   "keywords": [
